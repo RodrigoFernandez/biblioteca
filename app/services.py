@@ -11,8 +11,24 @@ from pyzbar.pyzbar import decode as pyzbar_decode
 from app.config import settings
 
 
-def save_image(file_bytes: bytes, suffix: str = ".jpg") -> Path:
-    filename = f"{uuid.uuid4()}{suffix}"
+def save_image(file_bytes: bytes) -> Path:
+    nparr = np.frombuffer(file_bytes, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+    if img is not None:
+        h, w = img.shape[:2]
+        max_dim = 600
+        if max(h, w) > max_dim:
+            scale = max_dim / max(h, w)
+            new_w = int(w * scale)
+            new_h = int(h * scale)
+            img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_AREA)
+
+        success, encoded = cv2.imencode(".webp", img, [int(cv2.IMWRITE_WEBP_QUALITY), 85])
+        if success:
+            file_bytes = encoded.tobytes()
+
+    filename = f"{uuid.uuid4()}.webp"
     path = settings.storage_path / filename
     path.write_bytes(file_bytes)
     return path

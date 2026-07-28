@@ -24,24 +24,23 @@ app/
   services.py    # Image processing pipeline + Open Library lookup
   api.py         # FastAPI app + POST /api/books/process-image
   bot.py         # Telegram bot with ConversationHandler (/nuevo)
+Dockers/desa/   # Docker dev: docker-compose.yml + Dockerfile
 ```
 
 ## Run commands
 
 ```bash
-# API
+# Docker dev (recomendado)
+docker compose -f Dockers/desa/docker-compose.yml build
+docker compose -f Dockers/desa/docker-compose.yml up          # api + bot
+docker compose -f Dockers/desa/docker-compose.yml up api      # solo api
+docker compose -f Dockers/desa/docker-compose.yml run --rm api uv run pytest tests/ -v
+
+# Without Docker
 BIBLIOTECA_TELEGRAM_BOT_TOKEN=xxx uv run uvicorn app.api:app --reload
-
-# Bot (separate terminal)
 BIBLIOTECA_TELEGRAM_BOT_TOKEN=xxx uv run python -m app.bot
-
-# Tests
 uv run pytest tests/ -v
-
-# Lint
 uv run ruff check app/
-
-# Migrations
 uv run alembic revision --autogenerate -m "description"
 uv run alembic upgrade head
 ```
@@ -50,6 +49,7 @@ uv run alembic upgrade head
 
 - **Env prefix:** All settings use `BIBLIOTECA_` prefix (e.g. `BIBLIOTECA_DATABASE_URL`)
 - **Image storage:** UUID-named files in `storage/images/`, paths stored as strings in DB
+- **Image processing:** All images redimensionadas a 600px máximo lado más largo (manteniendo aspect ratio), codificadas como WebP calidad 85 — tamaño ~50-100 KB desde fotos de celular
 - **Lazy imports:** PaddleOCR is imported inside `ocr_text()` only — heavy lib, never at module level
 - **Flat package:** Single `app/` directory, no nested sub-packages
 - **Barcodes:** Pyzbar tries raw image first, then preprocessed (blur + Otsu threshold). Accepts 10-digit (ISBN-10) and 13-digit (ISBN-13)

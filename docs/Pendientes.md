@@ -1,8 +1,8 @@
 ## Pendientes
 
 ### Infraestructura
-- [ ] Crear Dockerfile multi-stage (API + bot como servicios separados)
-- [ ] docker-compose.yml con volumes para `storage/` y SQLite
+- [x] Dockerfile + docker-compose.yml con volumes (imagen dev, live reload)
+- [ ] Dockerfile multi-stage para producción (imagen optimizada, sin volúmenes de código)
 - [ ] CI/CD: GitHub Actions con ruff + pytest
 
 ### Seguridad

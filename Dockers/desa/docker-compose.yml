@@ -1,0 +1,33 @@
+services:
+  api:
+    build:
+      context: ../..
+      dockerfile: Dockers/desa/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../../app:/app/app
+      - storage_data:/app/storage
+    environment:
+      - BIBLIOTECA_TELEGRAM_BOT_TOKEN=${BIBLIOTECA_TELEGRAM_BOT_TOKEN:?Variable BIBLIOTECA_TELEGRAM_BOT_TOKEN requerida}
+    env_file:
+      - ../../.env
+
+  bot:
+    build:
+      context: ../..
+      dockerfile: Dockers/desa/Dockerfile
+    command: uv run python -m app.bot
+    volumes:
+      - ../../app:/app/app
+      - storage_data:/app/storage
+    environment:
+      - BIBLIOTECA_API_BASE_URL=http://api:8000
+      - BIBLIOTECA_TELEGRAM_BOT_TOKEN=${BIBLIOTECA_TELEGRAM_BOT_TOKEN:?Variable BIBLIOTECA_TELEGRAM_BOT_TOKEN requerida}
+    env_file:
+      - ../../.env
+    depends_on:
+      - api
+
+volumes:
+  storage_data:
