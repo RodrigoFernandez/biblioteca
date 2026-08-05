@@ -2,6 +2,9 @@
 
 ### Infraestructura
 - [x] Dockerfile + docker-compose.yml con volumes (imagen dev, live reload)
+- [x] Docs de despliegue casero + registro del bot (docs/Telegram bot.md)
+- [ ] Agregar `restart: unless-stopped` al docker-compose para que sobreviva reinicios del servidor (hoy se hace a mano)
+- [ ] Automatizar backups del volumen `storage_data` (cron/script) — hoy el respaldo es manual
 - [ ] Dockerfile multi-stage para producción (imagen optimizada, sin volúmenes de código)
 - [ ] CI/CD: GitHub Actions con ruff + pytest
 
