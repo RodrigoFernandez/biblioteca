@@ -69,3 +69,22 @@ uv run ruff check app/
 uv run alembic revision --autogenerate -m "init"
 uv run alembic upgrade head
 ```
+
+## Tests
+
+Los tests no requieren que la API ni el bot esten corriendo ni acceso a red.
+
+```bash
+# Correr toda la suite
+uv run pytest tests/ -v
+
+# Lint
+uv run ruff check app/ tests/
+```
+
+Cobertura actual (`tests/test_services.py`):
+
+- `test_save_image` — guarda la imagen en `storage_path` y conserva los bytes
+- `test_read_barcode_returns_none_on_blank` — imagen sin codigo de barras devuelve `None`
+- `test_extract_structured_data` — texto completo se mapea a titulo, autor y editorial
+- `test_extract_structured_data_minimal` — una sola linea solo completa el titulo

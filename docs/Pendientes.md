@@ -22,6 +22,7 @@
 - [ ] Endpoint GET `/api/books/{id}` para detalle
 - [ ] Endpoint DELETE `/api/books/{id}`
 - [ ] Paginación en listado
+- [ ] Endpoint GET `/api/books/report.pdf` — reporte PDF de libros con **ReportLab** (`platypus.SimpleDocTemplate` + `Table`), sobre el listado de libros
 
 ### Bot
 - [ ] Comando `/listar` para ver libros registrados

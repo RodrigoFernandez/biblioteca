@@ -10,10 +10,6 @@ class BookBase(BaseModel):
     isbn: str | None = None
 
 
-class BookCreate(BookBase):
-    image_path: str
-
-
 class BookResponse(BookBase):
     id: str
     image_path: str

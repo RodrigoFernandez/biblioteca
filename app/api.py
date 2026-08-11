@@ -22,6 +22,7 @@ log = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    """Al arrancar: crea las tablas en la BD y asegura que exista el directorio de storage."""
     Base.metadata.create_all(bind=engine)
     settings.storage_path.mkdir(parents=True, exist_ok=True)
     yield
@@ -35,6 +36,8 @@ async def process_image(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
 ) -> ImageProcessResponse:
+    """Procesa una imagen: guarda, lee el codigo de barras, consulta Open Library,
+    usa OCR como fallback y registra el libro en la BD."""
     image_bytes = await file.read()
 
     image_path = save_image(image_bytes)
@@ -80,6 +83,7 @@ async def process_image(
 
 
 def main() -> None:
+    """Levanta la API con Uvicorn en 0.0.0.0:8000."""
     import uvicorn
 
     uvicorn.run(app, host="0.0.0.0", port=8000)

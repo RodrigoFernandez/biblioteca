@@ -1,28 +1,11 @@
 """Smoke test — verifies the core pipeline can be imported and basic ops work."""
-import io
 
 import cv2
 import numpy as np
-import pytest
-
-
-def _make_barcode_image(isbn: str = "9780134685991") -> bytes:
-    """Generate a synthetic image with a Code128 barcode."""
-    from pyzbar.pyzbar import ZBarSymbol
-    from pyzbar.pyzbar import decode as pyzbar_decode
-
-    from pyzbar.pyzbar import QRCode
-    import pyzbar.pyzbar as pyzbar_mod
-
-    # Use pyzbar's own encoder: draw barcode via PIL-free approach
-    # Fallback: just create a blank image — barcode decode will return empty,
-    # which is the expected path for non-barcode images.
-    img = np.ones((200, 400), dtype=np.uint8) * 255
-    _, buf = cv2.imencode(".jpg", img)
-    return buf.tobytes()
 
 
 def test_save_image(tmp_path):
+    """Verifica que save_image guarda el archivo en storage_path y conserva los bytes."""
     from app.config import settings
     from app.services import save_image
 
@@ -38,6 +21,7 @@ def test_save_image(tmp_path):
 
 
 def test_read_barcode_returns_none_on_blank():
+    """Una imagen en blanco no tiene codigo de barras: read_barcode devuelve None."""
     from app.services import read_barcode
 
     img = np.ones((200, 400), dtype=np.uint8) * 255
@@ -47,6 +31,7 @@ def test_read_barcode_returns_none_on_blank():
 
 
 def test_extract_structured_data():
+    """Texto completo: las 3 primeras lineas se mapean a titulo, autor y editorial."""
     from app.services import extract_structured_data
 
     text = "El Aleph\nJorge Luis Borges\nEditorial Sur\n1234567890"
@@ -57,6 +42,7 @@ def test_extract_structured_data():
 
 
 def test_extract_structured_data_minimal():
+    """Una sola linea: solo se completa el titulo, autor y editorial quedan en None."""
     from app.services import extract_structured_data
 
     data = extract_structured_data("Solo titulo")

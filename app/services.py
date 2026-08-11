@@ -12,6 +12,8 @@ from app.config import settings
 
 
 def save_image(file_bytes: bytes) -> Path:
+    """Decodifica la imagen, la redimensiona a max. 600px, la codifica como WebP calidad 85
+    y la guarda en storage con nombre UUID."""
     nparr = np.frombuffer(file_bytes, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
@@ -35,6 +37,8 @@ def save_image(file_bytes: bytes) -> Path:
 
 
 def read_barcode(image_bytes: bytes) -> str | None:
+    """Lee el codigo de barras: primero sobre la imagen cruda y, si falla,
+    con preprocesado (blur + umbral Otsu)."""
     nparr = np.frombuffer(image_bytes, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_GRAYSCALE)
     if img is None:
@@ -50,6 +54,8 @@ def read_barcode(image_bytes: bytes) -> str | None:
 
 
 def _decode_barcodes(img: np.ndarray) -> list[str]:
+    """Decodifica los codigos de barras y filtra solo numericos de 10 o 13 digitos
+    (ISBN-10/ISBN-13)."""
     results = pyzbar_decode(img)
     return [
         r.data.decode("utf-8")
@@ -60,7 +66,8 @@ def _decode_barcodes(img: np.ndarray) -> list[str]:
 
 
 def ocr_text(image_bytes: bytes) -> str:
-    """Lazy import PaddleOCR — only loads when called."""
+    """Extrae el texto de la imagen con PaddleOCR y lo devuelve como lineas separadas.
+    Lazy import: PaddleOCR solo se carga cuando se llama."""
     from paddleocr import PaddleOCR  # ponytail: heavy lib, lazy load
 
     ocr = PaddleOCR(use_angle_cls=True, lang="es", use_gpu=False, show_log=False)
@@ -78,6 +85,7 @@ def ocr_text(image_bytes: bytes) -> str:
 
 
 async def lookup_open_library(isbn: str) -> dict[str, str | None] | None:
+    """Consulta Open Library por ISBN y devuelve titulo, editoriales y autores (hasta 3)."""
     async with httpx.AsyncClient(timeout=10) as client:
         resp = await client.get(f"https://openlibrary.org/isbn/{isbn}.json")
         if resp.status_code != 200:
@@ -102,6 +110,8 @@ async def lookup_open_library(isbn: str) -> dict[str, str | None] | None:
 
 
 def extract_structured_data(raw_text: str) -> dict[str, str | None]:
+    """Heuristica simple: las primeras 3 lineas no numericas del texto OCR se toman como
+    titulo, autor y editorial respectivamente."""
     lines = [line.strip() for line in raw_text.split("\n") if line.strip()]
     text_lines = [line for line in lines if not line.replace(" ", "").isdigit()]
 
