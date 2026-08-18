@@ -1,6 +1,7 @@
 """Smoke test — verifies the core pipeline can be imported and basic ops work."""
 
 import cv2
+import httpx
 import numpy as np
 
 
@@ -49,3 +50,55 @@ def test_extract_structured_data_minimal():
     assert data["title"] == "Solo titulo"
     assert data["author"] is None
     assert data["publisher"] is None
+
+
+def test_extract_structured_data_skips_numeric_lines():
+    """El ISBN numerico (primera linea) no se toma como titulo: debe saltarse."""
+    from app.services import extract_structured_data
+
+    text = "9789500000000\nEl Aleph\nJorge Luis Borges\nEditorial Sur"
+    data = extract_structured_data(text)
+    assert data["title"] == "El Aleph"
+    assert data["author"] == "Jorge Luis Borges"
+    assert data["publisher"] == "Editorial Sur"
+
+
+def test_lookup_open_library(monkeypatch):
+    """Agrupa editoriales/autores (max 3) y devuelve None si no hay respuesta 200."""
+    import app.services as services
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path.startswith("/isbn/"):
+            return httpx.Response(
+                200,
+                json={
+                    "title": "El Aleph",
+                    "publishers": ["E1", "E2", "E3", "E4"],
+                    "authors": [{"key": "/authors/OL1"}, {"key": "/authors/OL2"}],
+                },
+            )
+        return httpx.Response(200, json={"name": f"Autor {request.url.path}"})
+
+    def make_client(**kwargs):
+        return real_client(transport=httpx.MockTransport(handler))
+
+    real_client = httpx.AsyncClient
+    monkeypatch.setattr(services.httpx, "AsyncClient", make_client)
+
+    data = asyncio_run(services.lookup_open_library("9789500000000"))
+    expected = {
+        "title": "El Aleph",
+        "author": "Autor /authors/OL1.json, Autor /authors/OL2.json",
+        "publisher": "E1, E2, E3",
+    }
+    assert data == expected
+
+    not_found = real_client(transport=httpx.MockTransport(lambda r: httpx.Response(404)))
+    monkeypatch.setattr(services.httpx, "AsyncClient", lambda **kwargs: not_found)
+    assert asyncio_run(services.lookup_open_library("9789500000000")) is None
+
+
+def asyncio_run(coro):
+    import asyncio
+
+    return asyncio.run(coro)

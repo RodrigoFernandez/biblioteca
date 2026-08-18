@@ -31,6 +31,8 @@
 - [ ] Soporte para envío de múltiples fotos en un solo mensaje (no solo una por vez)
 
 ### Testing
-- [ ] Tests de integración para el endpoint (TestClient de FastAPI)
+- [x] Tests de integración para el endpoint (TestClient de FastAPI)
 - [ ] Test del pipeline completo con imagen real de libro
-- [ ] Mock de Open Library para tests offline
+- [x] Mock de Open Library para tests offline
+- [x] Tests de los handlers del bot con fakes (sin Telegram real)
+- [ ] Test de `_decode_barcodes` con imagen real de código de barras (ISBN-13)
