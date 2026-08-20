@@ -14,7 +14,8 @@
 
 ### OCR
 - [ ] Pre-warming de PaddleOCR en background thread al startup de la API (evitar latencia en primera llamada)
-- [ ] Mejorar heurística `extract_structured_data` — detectar patrones de editorial, año, ISBN en texto OCR
+- [x] Extraer ISBN del texto OCR (`extract_isbn`) — ISBN-10/ISBN-13 con espacios/guiones
+- [ ] Mejorar heurística `extract_structured_data` — detectar patrones de editorial, año
 - [ ] Soporte para múltiples idiomas en OCR (configurable)
 
 ### API
@@ -32,7 +33,7 @@
 
 ### Testing
 - [x] Tests de integración para el endpoint (TestClient de FastAPI)
-- [ ] Test del pipeline completo con imagen real de libro
+- [x] Test del pipeline completo con imagen real de libro (`tests/test_fixtures.py`, requiere `[ocr]`)
 - [x] Mock de Open Library para tests offline
 - [x] Tests de los handlers del bot con fakes (sin Telegram real)
 - [ ] Test de `_decode_barcodes` con imagen real de código de barras (ISBN-13)

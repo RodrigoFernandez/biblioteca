@@ -1,8 +1,11 @@
 """Smoke test — verifies the core pipeline can be imported and basic ops work."""
 
+from pathlib import Path
+
 import cv2
 import httpx
 import numpy as np
+import pytest
 
 
 def test_save_image(tmp_path):
@@ -19,6 +22,30 @@ def test_save_image(tmp_path):
     assert path.read_bytes() == data
 
     settings.storage_path = original
+
+
+def test_save_image_resizes_and_compresses_real_photos(tmp_path):
+    """Verifica la promesa de storage: max 600px por lado y WebP mucho mas liviano."""
+    from app.config import settings
+    from app.services import save_image
+
+    photos = sorted(Path(__file__).parent.glob("fixtures/*/*.jpg"))
+    if not photos:
+        pytest.skip("no hay fotos de prueba en tests/fixtures")
+
+    original = settings.storage_path
+    settings.storage_path = tmp_path
+    try:
+        for photo in photos:
+            raw = photo.read_bytes()
+            out = save_image(raw)
+            img = cv2.imdecode(np.frombuffer(out.read_bytes(), np.uint8), cv2.IMREAD_COLOR)
+            h, w = img.shape[:2]
+            assert max(h, w) <= 600, f"{photo.name}: {max(h, w)}px"
+            assert out.suffix == ".webp"
+            assert out.stat().st_size < len(raw) // 10, f"{photo.name} no comprimio"
+    finally:
+        settings.storage_path = original
 
 
 def test_read_barcode_returns_none_on_blank():
@@ -61,6 +88,15 @@ def test_extract_structured_data_skips_numeric_lines():
     assert data["title"] == "El Aleph"
     assert data["author"] == "Jorge Luis Borges"
     assert data["publisher"] == "Editorial Sur"
+
+
+def test_extract_isbn():
+    """Extrae ISBN-13 o ISBN-10 admitiendo espacios y guiones; None si no hay."""
+    from app.services import extract_isbn
+
+    assert extract_isbn("El Aleph\nISBN 978-950-420021-3\nEditorial Sur") == "9789504200213"
+    assert extract_isbn("ISBN 950 42 0021 4") == "9504200214"
+    assert extract_isbn("Matematica Discreta") is None
 
 
 def test_lookup_open_library(monkeypatch):

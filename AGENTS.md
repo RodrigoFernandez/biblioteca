@@ -25,6 +25,7 @@ app/
   api.py         # FastAPI app + POST /api/books/process-image
   bot.py         # Telegram bot with ConversationHandler (/nuevo)
 Dockers/desa/   # Docker dev: docker-compose.yml + Dockerfile
+tests/          # pytest: unit (services), integracion (api/bot), fixtures con fotos reales
 ```
 
 ## Run commands
@@ -53,7 +54,7 @@ uv run alembic upgrade head
 - **Lazy imports:** PaddleOCR is imported inside `ocr_text()` only — heavy lib, never at module level
 - **Flat package:** Single `app/` directory, no nested sub-packages
 - **Barcodes:** Pyzbar tries raw image first, then preprocessed (blur + Otsu threshold). Accepts 10-digit (ISBN-10) and 13-digit (ISBN-13)
-- **OCR fallback:** Only runs if barcode lookup didn't produce a title
+- **OCR fallback:** Only runs if barcode lookup didn't produce a title. Also extracts ISBN-10/ISBN-13 from OCR text (`extract_isbn`) and persists it when barcode is absent
 - **Bot <-> API:** Bot calls API over HTTP (httpx), they run as separate processes
 
 ## Architecture decision: separate processes

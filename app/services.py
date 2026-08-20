@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import uuid
 from pathlib import Path
 
@@ -107,6 +108,15 @@ async def lookup_open_library(isbn: str) -> dict[str, str | None] | None:
         authors = ", ".join(n for n in names if n) or None
 
     return {"title": title, "author": authors, "publisher": publishers}
+
+
+def extract_isbn(raw_text: str) -> str | None:
+    """Extrae un ISBN-13 o ISBN-10 del texto OCR, admitiendo espacios o guiones."""
+    for match in re.findall(r"\d[\d\- ]{8,17}\d", raw_text):
+        digits = re.sub(r"[^\d]", "", match)
+        if len(digits) in (13, 10):
+            return digits
+    return None
 
 
 def extract_structured_data(raw_text: str) -> dict[str, str | None]:

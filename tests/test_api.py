@@ -60,7 +60,7 @@ def test_process_image_with_isbn(client, db_session, monkeypatch, tmp_path):
 
 
 def test_process_image_ocr_fallback(client, db_session, monkeypatch, tmp_path):
-    """Sin ISBN: el OCR provee titulo/autor y se persisten con isbn None."""
+    """Sin ISBN: el OCR provee titulo/autor y el ISBN se extrae del texto OCR."""
     monkeypatch.setattr(api_module, "save_image", lambda b: tmp_path / "fake.webp")
     monkeypatch.setattr(api_module, "read_barcode", lambda b: None)
     monkeypatch.setattr(api_module, "lookup_open_library", lambda isbn: None)
@@ -79,4 +79,4 @@ def test_process_image_ocr_fallback(client, db_session, monkeypatch, tmp_path):
     book = db_session().query(Book).one()
     assert book.title == "El Aleph"
     assert book.author == "Jorge Luis Borges"
-    assert book.isbn is None
+    assert book.isbn == "9789500000000"

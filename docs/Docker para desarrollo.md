@@ -83,3 +83,4 @@ docker compose -f Dockers/desa/docker-compose.yml down
 - La base de datos SQLite se guarda en el volumen `storage_data`, no desaparece al bajar los contenedores.
 - Si agregás una dependencia nueva a `pyproject.toml`, corré `docker compose -f Dockers/desa/docker-compose.yml build` para actualizar la imagen.
 - PaddleOCR tarda ~10s en la primera inferencia (descarga modelos). En el contenedor ocurre igual que en el host.
+- `tests/test_fixtures.py` (fotos reales con OCR) solo corre en el contenedor (tiene `paddleocr`); en el host sin el extra `[ocr]` se salta.

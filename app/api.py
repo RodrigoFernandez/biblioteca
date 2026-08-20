@@ -10,6 +10,7 @@ from app.database import Base, engine, get_db
 from app.models import Book
 from app.schemas import BookResponse, ImageProcessResponse
 from app.services import (
+    extract_isbn,
     extract_structured_data,
     lookup_open_library,
     ocr_text,
@@ -63,6 +64,8 @@ async def process_image(
         if raw_text:
             log.info("OCR fallback — extracting structured data")
             book_data.update(extract_structured_data(raw_text))
+            if not book_data["isbn"]:
+                book_data["isbn"] = extract_isbn(raw_text)
 
     book = Book(
         title=book_data["title"],
