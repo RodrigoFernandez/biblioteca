@@ -3,12 +3,14 @@
 ### Infraestructura
 - [x] Dockerfile + docker-compose.yml con volumes (imagen dev, live reload)
 - [x] Docs de despliegue casero + registro del bot (docs/Telegram bot.md)
+- [x] Flujo Podman para desarrollo: script `scripts/pc` (wrapper `source .env` + `podman compose`), plugin `docker-compose-v2`, socket de Podman, `.env` único en la raíz, `.dockerignore` que excluye el `.env` del build context
 - [ ] Agregar `restart: unless-stopped` al docker-compose para que sobreviva reinicios del servidor (hoy se hace a mano)
 - [ ] Automatizar backups del volumen `storage_data` (cron/script) — hoy el respaldo es manual
 - [ ] Dockerfile multi-stage para producción (imagen optimizada, sin volúmenes de código)
 - [ ] CI/CD: GitHub Actions con ruff + pytest
 
 ### Seguridad
+- [x] Excluir el `.env` del build context (`.dockerignore` en la raíz) para que el token no entre en la imagen
 - [ ] Autenticación en el endpoint `/api/books/process-image` (API key o JWT)
 - [ ] Rate limiting en la API
 

@@ -46,6 +46,30 @@ docker compose -f Dockers/desa/docker-compose.yml up
 
 Ver `docs/Docker para desarrollo.md` para más detalles (tests, lint, comandos útiles).
 
+### Con Podman
+
+Alternativa a Docker en este entorno (usa el script `scripts/pc`, que hace `source .env` y corre desde la raíz):
+
+```bash
+# Crear .env con tu token (raíz del proyecto)
+echo "BIBLIOTECA_TELEGRAM_BOT_TOKEN=tu_token" > .env
+
+# Build + levantar todo
+./scripts/pc
+
+# Solo API
+./scripts/pc api
+
+# Todo en background / solo API en background
+./scripts/pc background
+./scripts/pc api background
+
+# Bajar
+./scripts/pc down
+```
+
+Requiere el plugin `podman compose` (`sudo apt install docker-compose-v2`) y el socket de Podman activo (`systemctl --user enable --now podman.socket`). Ver `docs/Docker para desarrollo.md`.
+
 ### Sin Docker (instalación local)
 
 ```bash

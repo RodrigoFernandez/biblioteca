@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# pc — wrapper de podman compose con el .env de la raíz
+set -euo pipefail
+cd "$(dirname "$0")/.."                 # raíz del proyecto
+if [ ! -f .env ]; then
+  echo "Error: no existe .env en la raíz. Crealo con BIBLIOTECA_TELEGRAM_BOT_TOKEN=..." >&2
+  exit 1
+fi
+set -a; source .env; set +a             # exporta el token para la interpolación del host
+COMPOSE=(podman compose -f Dockers/desa/docker-compose.yml)
+
+SVC=""; MODE=""
+for a in "$@"; do
+  case "$a" in
+    build)      "${COMPOSE[@]}" build; exit 0 ;;
+    down)       "${COMPOSE[@]}" down;  exit 0 ;;
+    up)         ;;
+    api)        SVC=api ;;
+    background) MODE=-d ;;
+    *) echo "Uso: $0 [build|up|down|api] [background]" >&2; exit 1 ;;
+  esac
+done
+
+# Sin args: build + up (API+Bot, foreground)
+if [ "$#" -eq 0 ]; then
+  "${COMPOSE[@]}" build
+fi
+"${COMPOSE[@]}" up ${MODE:+$MODE} ${SVC:+$SVC}

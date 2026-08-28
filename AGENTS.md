@@ -25,19 +25,28 @@ app/
   api.py         # FastAPI app + POST /api/books/process-image
   bot.py         # Telegram bot with ConversationHandler (/nuevo)
 Dockers/desa/   # Docker dev: docker-compose.yml + Dockerfile
+scripts/pc      # Wrapper podman compose: source .env + comandos (build/up/down/api/background)
+.env            # Raíz: único archivo de env (no versionado)
 tests/          # pytest: unit (services), integracion (api/bot), fixtures con fotos reales
 ```
 
 ## Run commands
 
 ```bash
-# Docker dev (recomendado)
+# Podman dev (flujo de este entorno) — usa scripts/pc, que hace source .env
+./scripts/pc               # build + up (api + bot)
+./scripts/pc api           # solo api
+./scripts/pc background    # up -d (todo en background)
+./scripts/pc api background # solo api en background
+./scripts/pc down          # bajar todo
+
+# Docker dev (alternativa)
 docker compose -f Dockers/desa/docker-compose.yml build
 docker compose -f Dockers/desa/docker-compose.yml up          # api + bot
 docker compose -f Dockers/desa/docker-compose.yml up api      # solo api
 docker compose -f Dockers/desa/docker-compose.yml run --rm api uv run pytest tests/ -v
 
-# Without Docker
+# Sin Docker/containers
 BIBLIOTECA_TELEGRAM_BOT_TOKEN=xxx uv run uvicorn app.api:app --reload
 BIBLIOTECA_TELEGRAM_BOT_TOKEN=xxx uv run python -m app.bot
 uv run pytest tests/ -v
@@ -49,6 +58,7 @@ uv run alembic upgrade head
 ## Key conventions
 
 - **Env prefix:** All settings use `BIBLIOTECA_` prefix (e.g. `BIBLIOTECA_DATABASE_URL`)
+- **Single `.env`:** Only the root `.env` exists (not versioned). The `podman compose` plugin needs the var exported/interpolated by the host — `scripts/pc` does `source .env`. The apt `podman-compose` package does NOT autoload `.env` for host interpolation; use `podman compose` (Docker Compose v2 plugin). Root `.dockerignore` excludes `.env` from the build context.
 - **Image storage:** UUID-named files in `storage/images/`, paths stored as strings in DB
 - **Image processing:** All images redimensionadas a 600px máximo lado más largo (manteniendo aspect ratio), codificadas como WebP calidad 85 — tamaño ~50-100 KB desde fotos de celular
 - **Lazy imports:** PaddleOCR is imported inside `ocr_text()` only — heavy lib, never at module level
