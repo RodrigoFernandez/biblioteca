@@ -18,6 +18,10 @@ class BookResponse(BookBase):
     model_config = {"from_attributes": True}
 
 
+class ListBooksResponse(BaseModel):
+    books: list[BookResponse]
+
+
 class ImageProcessResponse(BaseModel):
     success: bool
     book: BookResponse | None = None

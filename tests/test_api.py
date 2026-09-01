@@ -80,3 +80,52 @@ def test_process_image_ocr_fallback(client, db_session, monkeypatch, tmp_path):
     assert book.title == "El Aleph"
     assert book.author == "Jorge Luis Borges"
     assert book.isbn == "9789500000000"
+
+
+def test_list_books_empty(client):
+    """Sin libros, el listado devuelve una lista vacia."""
+    resp = client.get("/api/books")
+    assert resp.status_code == 200
+    assert resp.json() == {"books": []}
+
+
+def test_list_books_returns_books_ordered_by_creation(client, db_session):
+    """Lista los libros, del mas reciente al mas antiguo."""
+    from datetime import datetime, timedelta
+
+    now = datetime(2024, 1, 1, 12, 0, 0)
+    older = Book(title="Viejo", isbn="1", image_path="/a", created_at=now - timedelta(days=1))
+    newer = Book(title="Nuevo", isbn="2", image_path="/b", created_at=now)
+    db = db_session()
+    db.add(older)
+    db.add(newer)
+    db.commit()
+
+    resp = client.get("/api/books")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert [b["title"] for b in body["books"]] == ["Nuevo", "Viejo"]
+
+
+def test_get_book_by_id(client, db_session):
+    """Devuelve el libro con el id indicado."""
+    book = Book(title="El Aleph", isbn="9789500000000", image_path="/a")
+    db = db_session()
+    db.add(book)
+    db.commit()
+    db.refresh(book)
+
+    resp = client.get(f"/api/books/{book.id}")
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["id"] == book.id
+    assert body["title"] == "El Aleph"
+    assert body["isbn"] == "9789500000000"
+
+
+def test_get_book_not_found(client):
+    """Id inexistente devuelve 404."""
+    resp = client.get("/api/books/no-such-id")
+    assert resp.status_code == 404
+    assert resp.json()["detail"] == "Libro no encontrado"

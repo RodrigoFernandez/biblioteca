@@ -22,7 +22,7 @@ app/
   models.py      # Book ORM model
   schemas.py     # Pydantic response/request models
   services.py    # Image processing pipeline + Open Library lookup
-  api.py         # FastAPI app + POST /api/books/process-image
+  api.py         # FastAPI app + endpoints: POST /api/books/process-image, GET /api/books, GET /api/books/{id}
   bot.py         # Telegram bot with ConversationHandler (/nuevo)
 Dockers/desa/   # Docker dev: docker-compose.yml + Dockerfile
 scripts/pc      # Wrapper podman compose: source .env + comandos (build/up/down/api/background)

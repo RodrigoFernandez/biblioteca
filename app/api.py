@@ -2,13 +2,13 @@ import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI, File, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import Base, engine, get_db
 from app.models import Book
-from app.schemas import BookResponse, ImageProcessResponse
+from app.schemas import BookResponse, ImageProcessResponse, ListBooksResponse
 from app.services import (
     extract_isbn,
     extract_structured_data,
@@ -30,6 +30,22 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 
 app = FastAPI(title="Biblioteca API", lifespan=lifespan)
+
+
+@app.get("/api/books", response_model=ListBooksResponse)
+def list_books(db: Session = Depends(get_db)) -> ListBooksResponse:
+    """Lista los libros subidos, del mas reciente al mas antiguo."""
+    books = db.query(Book).order_by(Book.created_at.desc()).all()
+    return ListBooksResponse(books=[BookResponse.model_validate(b) for b in books])
+
+
+@app.get("/api/books/{book_id}", response_model=BookResponse)
+def get_book(book_id: str, db: Session = Depends(get_db)) -> BookResponse:
+    """Devuelve un libro puntual por su id."""
+    book = db.get(Book, book_id)
+    if book is None:
+        raise HTTPException(status_code=404, detail="Libro no encontrado")
+    return BookResponse.model_validate(book)
 
 
 @app.post("/api/books/process-image", response_model=ImageProcessResponse)

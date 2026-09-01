@@ -22,7 +22,7 @@ app/
   models.py      # Book model
   schemas.py     # Pydantic schemas
   services.py    # Pipeline: barcode -> Open Library -> OCR (+ ISBN desde texto)
-  api.py         # FastAPI endpoint
+  api.py         # FastAPI endpoints: process-image, listado, detalle
   bot.py         # Telegram ConversationHandler
 Dockers/desa/    # Docker para desarrollo (compose + Dockerfile)
 storage/images/  # Imagenes guardadas (UUID .webp)
@@ -117,6 +117,6 @@ Cobertura actual (`tests/test_services.py`):
 - `test_extract_structured_data_skips_numeric_lines` — lineas numericas no se toman como titulo
 - `test_lookup_open_library` — consulta a Open Library (mockeada) y caso de no-encontrado
 
-`tests/test_api.py`: integracion del endpoint `process-image` (pipeline completo con mocks).
+`tests/test_api.py`: integracion de los endpoints `process-image`, `GET /api/books` y `GET /api/books/{id}` (pipeline completo con mocks).
 
 `tests/test_fixtures.py`: procesa las fotos reales de `tests/fixtures/` (2 libros x 3 fotos) y verifica que se extrae el ISBN. Requiere el extra `[ocr]` (PaddleOCR); **se salta** si no esta instalado — correrlos dentro del contenedor Docker o con `uv sync --extra ocr`.
