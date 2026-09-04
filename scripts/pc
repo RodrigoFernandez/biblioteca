@@ -1,28 +1,34 @@
 #!/usr/bin/env bash
 # pc — wrapper de podman compose con el .env de la raíz
-set -euo pipefail
-cd "$(dirname "$0")/.."                 # raíz del proyecto
+# Subcomandos: build | down | up | api | background
+set -euo pipefail                           # aborta ante cualquier error; variables sin definir o pipeline roto
+cd "$(dirname "$0")/.."                     # cambia a la raíz del proyecto (independiente del CWD donde se invoque)
+
+# Carga el .env de la raíz: lo exporta al entorno para que podman compose
+# pueda interpolar BIBLIOTECA_* en el host (el plugin compose NO autoload .env).
 if [ ! -f .env ]; then
   echo "Error: no existe .env en la raíz. Crealo con BIBLIOTECA_TELEGRAM_BOT_TOKEN=..." >&2
   exit 1
 fi
-set -a; source .env; set +a             # exporta el token para la interpolación del host
-COMPOSE=(podman compose -f Dockers/desa/docker-compose.yml)
+set -a; source .env; set +a                 # set -a: exporta cada variable al definirse; se desactiva luego
+COMPOSE=(podman compose -f Dockers/desa/docker-compose.yml)  # base de comandos compose
 
+# Interpreta los args: build/down ejecutan y salen; up es nop (implícito al final);
+# api selecciona solo el servicio api; background agrega -d (detached).
 SVC=""; MODE=""
 for a in "$@"; do
   case "$a" in
-    build)      "${COMPOSE[@]}" build; exit 0 ;;
-    down)       "${COMPOSE[@]}" down;  exit 0 ;;
+    build)      "${COMPOSE[@]}" build; exit 0 ;;   # construye las imágenes
+    down)       "${COMPOSE[@]}" down;  exit 0 ;;   # detiene y elimina contenedores/red
     up)         ;;
-    api)        SVC=api ;;
-    background) MODE=-d ;;
+    api)        SVC=api ;;                        # levantar solo el servicio api
+    background) MODE=-d ;;                        # correr en background (detached)
     *) echo "Uso: $0 [build|up|down|api] [background]" >&2; exit 1 ;;
   esac
 done
 
-# Sin args: build + up (API+Bot, foreground)
+# Sin args: construye las imágenes y luego levanta en foreground (API+Bot).
 if [ "$#" -eq 0 ]; then
   "${COMPOSE[@]}" build
 fi
-"${COMPOSE[@]}" up ${MODE:+$MODE} ${SVC:+$SVC}
+"${COMPOSE[@]}" up ${MODE:+$MODE} ${SVC:+$SVC}     # up con flags acumulados (si los hay)

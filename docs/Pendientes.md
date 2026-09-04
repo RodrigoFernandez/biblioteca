@@ -7,6 +7,7 @@
 - [ ] Agregar `restart: unless-stopped` al docker-compose para que sobreviva reinicios del servidor (hoy se hace a mano)
 - [ ] Automatizar backups del volumen `storage_data` (cron/script) — hoy el respaldo es manual
 - [ ] Dockerfile multi-stage para producción (imagen optimizada, sin volúmenes de código)
+- [ ] Configurar logging dedicado de la app (niveles, formato, salida a archivo/rotación para api y bot)
 - [ ] CI/CD: GitHub Actions con ruff + pytest
 
 ### Seguridad
