@@ -20,7 +20,7 @@ EXPECTED_ISBN = {
 def test_process_book_folder_real_photos(client, db_session, monkeypatch, tmp_path, book, isbn):  # noqa: F811
     """Procesa las fotos de un libro y verifica que al menos una produzca su ISBN."""
     folder = FIXTURES / book
-    photos = sorted(folder.glob("*")) if folder.is_dir() else []
+    photos = sorted(p for p in folder.glob("*") if p.stat().st_size > 0) if folder.is_dir() else []
     if not photos:
         pytest.skip(f"no hay fotos en {folder}")
 

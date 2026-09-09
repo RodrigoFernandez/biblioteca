@@ -60,7 +60,8 @@ uv run alembic upgrade head
 - **Env prefix:** All settings use `BIBLIOTECA_` prefix (e.g. `BIBLIOTECA_DATABASE_URL`)
 - **Single `.env`:** Only the root `.env` exists (not versioned). The `podman compose` plugin needs the var exported/interpolated by the host — `scripts/pc` does `source .env`. The apt `podman-compose` package does NOT autoload `.env` for host interpolation; use `podman compose` (Docker Compose v2 plugin). Root `.dockerignore` excludes `.env` from the build context.
 - **Image storage:** UUID-named files in `storage/images/`, paths stored as strings in DB
-- **Image processing:** All images redimensionadas a 600px máximo lado más largo (manteniendo aspect ratio), codificadas como WebP calidad 85 — tamaño ~50-100 KB desde fotos de celular
+- **Image processing:** All images redimensionadas a 600px máximo lado más largo (manteniendo aspect ratio), codificadas como WebP calidad 85 — tamaño ~50-100 KB desde fotos de celular. `save_image` lanza `ValueError` si no puede decodificar o re-encodificar → la API responde `400` sin persistir nada
+- **PaddleOCR (API 3.x):** It runs over the ALREADY-resized image (600px) saved by `save_image` (`image_path.read_bytes()`), never over raw upload bytes — raw camera photos cause OOM. Constructor: `PaddleOCR(lang="es", device="cpu", use_textline_orientation=True, enable_mkldnn=False)`. `enable_mkldnn=False` is a workaround for the oneDNN/PIR `NotImplementedError` crash in paddlepaddle 3.3.x CPU — do NOT re-enable without bumping paddlepaddle
 - **Lazy imports:** PaddleOCR is imported inside `ocr_text()` only — heavy lib, never at module level
 - **Flat package:** Single `app/` directory, no nested sub-packages
 - **Barcodes:** Pyzbar tries raw image first, then preprocessed (blur + Otsu threshold). Accepts 10-digit (ISBN-10) and 13-digit (ISBN-13)

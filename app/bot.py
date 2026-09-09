@@ -74,7 +74,7 @@ async def process_photos(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                     f"ISBN: {book.get('isbn') or 'No detectado'}"
                 )
             else:
-                msg = f"Error: {data.get('message', 'Error desconocido')}"
+                msg = f"Error: {data.get('detail') or data.get('message') or 'Error desconocido'}"
 
             await update.message.reply_text(msg)  # type: ignore[union-attr]
 

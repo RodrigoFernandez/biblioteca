@@ -61,7 +61,9 @@ def test_process_image_with_isbn(client, db_session, monkeypatch, tmp_path):
 
 def test_process_image_ocr_fallback(client, db_session, monkeypatch, tmp_path):
     """Sin ISBN: el OCR provee titulo/autor y el ISBN se extrae del texto OCR."""
-    monkeypatch.setattr(api_module, "save_image", lambda b: tmp_path / "fake.webp")
+    fake_path = tmp_path / "fake.webp"
+    fake_path.write_bytes(b"jpeg")
+    monkeypatch.setattr(api_module, "save_image", lambda b: fake_path)
     monkeypatch.setattr(api_module, "read_barcode", lambda b: None)
     monkeypatch.setattr(api_module, "lookup_open_library", lambda isbn: None)
     text = "El Aleph\nJorge Luis Borges\nEditorial Sur\n9789500000000"
@@ -80,6 +82,16 @@ def test_process_image_ocr_fallback(client, db_session, monkeypatch, tmp_path):
     assert book.title == "El Aleph"
     assert book.author == "Jorge Luis Borges"
     assert book.isbn == "9789500000000"
+
+
+def test_process_image_rejects_invalid_image(client, db_session):
+    """Una imagen no decodificable da 400 y no persiste nada."""
+    files = {"file": ("basura.jpg", b"no soy una imagen", "image/jpeg")}
+    resp = client.post("/api/books/process-image", files=files)
+
+    assert resp.status_code == 400
+    assert resp.json()["detail"] == "Imagen no decodificable"
+    assert db_session().query(Book).count() == 0
 
 
 def test_list_books_empty(client):

@@ -141,5 +141,6 @@ docker run --rm -v biblioteca_storage_data:/data -v $(pwd):/backup \
 ## Notas
 
 - **Polling, no webhook:** el bot le pregunta a Telegram en bucle. No requiere dominio, IP pública ni port-forwarding — ideal para servidor casero.
-- **PaddleOCR:** la primera inferencia tarda ~10s (descarga modelos). Las siguientes son más rápidas.
+- **PaddleOCR (API 3.x):** la primera inferencia tarda ~15-20s (descarga ~3 modelos). Las siguientes son más rápidas.
+- Si la API responde error (p. ej. `400` por imagen no decodificable), el bot muestra el motivo (`detail` o `message`).
 - El bot responde por cada foto; enviar varias fotos y cerrar con `/listo` procesa todas. Cualquier cosa se cancela con `/cancel`.

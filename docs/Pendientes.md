@@ -18,6 +18,7 @@
 ### OCR
 - [ ] Pre-warming de PaddleOCR en background thread al startup de la API (evitar latencia en primera llamada)
 - [x] Extraer ISBN del texto OCR (`extract_isbn`) — ISBN-10/ISBN-13 con espacios/guiones
+- [ ] Revisitar `enable_mkldnn=False` en `ocr_text()` y re-habilitarlo al subir paddlepaddle (bug PIR/oneDNN en 3.3.x CPU, `NotImplementedError`)
 - [ ] Mejorar heurística `extract_structured_data` — detectar patrones de editorial, año
 - [ ] Soporte para múltiples idiomas en OCR (configurable)
 
@@ -40,3 +41,4 @@
 - [x] Mock de Open Library para tests offline
 - [x] Tests de los handlers del bot con fakes (sin Telegram real)
 - [ ] Test de `_decode_barcodes` con imagen real de código de barras (ISBN-13)
+- [ ] Reconciliar `EXPECTED_ISBN` de `miguel_angel`: 8434581477 no aparece en las fotos — el OCR del colofón detecta 8434581450

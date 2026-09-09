@@ -8,20 +8,20 @@ import numpy as np
 import pytest
 
 
-def test_save_image(tmp_path):
-    """Verifica que save_image guarda el archivo en storage_path y conserva los bytes."""
+def test_save_image_rejects_invalid_data(tmp_path):
+    """Datos no decodificables: save_image levanta ValueError en vez de guardar basura."""
     from app.config import settings
     from app.services import save_image
 
     original = settings.storage_path
     settings.storage_path = tmp_path
-
-    data = b"\xff\xd8\xff\xe0" + b"\x00" * 100
-    path = save_image(data)
-    assert path.exists()
-    assert path.read_bytes() == data
-
-    settings.storage_path = original
+    try:
+        data = b"\xff\xd8\xff\xe0" + b"\x00" * 100
+        with pytest.raises(ValueError, match="no decodificable"):
+            save_image(data)
+        assert list(tmp_path.iterdir()) == []
+    finally:
+        settings.storage_path = original
 
 
 def test_save_image_resizes_and_compresses_real_photos(tmp_path):

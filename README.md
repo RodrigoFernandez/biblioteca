@@ -108,7 +108,7 @@ uv run ruff check app/ tests/
 
 Cobertura actual (`tests/test_services.py`):
 
-- `test_save_image` — guarda la imagen en `storage_path` y conserva los bytes
+- `test_save_image_rejects_invalid_data` — datos no decodificables: `ValueError`, no se guarda basura
 - `test_save_image_resizes_and_compresses_real_photos` — fotos reales: max 600px, WebP y ≥10x de compresion
 - `test_read_barcode_returns_none_on_blank` — imagen sin codigo de barras devuelve `None`
 - `test_extract_isbn` — extrae ISBN-10/13 del texto OCR (admite espacios/guiones)
@@ -117,6 +117,6 @@ Cobertura actual (`tests/test_services.py`):
 - `test_extract_structured_data_skips_numeric_lines` — lineas numericas no se toman como titulo
 - `test_lookup_open_library` — consulta a Open Library (mockeada) y caso de no-encontrado
 
-`tests/test_api.py`: integracion de los endpoints `process-image`, `GET /api/books` y `GET /api/books/{id}` (pipeline completo con mocks).
+`tests/test_api.py`: integracion de los endpoints `process-image`, `GET /api/books` y `GET /api/books/{id}` (pipeline completo con mocks). Incluye `400` cuando la imagen no es decodificable (sin persistencia).
 
 `tests/test_fixtures.py`: procesa las fotos reales de `tests/fixtures/` (2 libros x 3 fotos) y verifica que se extrae el ISBN. Requiere el extra `[ocr]` (PaddleOCR); **se salta** si no esta instalado — correrlos dentro del contenedor Docker o con `uv sync --extra ocr`.

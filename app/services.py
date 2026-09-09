@@ -17,19 +17,21 @@ def save_image(file_bytes: bytes) -> Path:
     y la guarda en storage con nombre UUID."""
     nparr = np.frombuffer(file_bytes, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    if img is None:
+        raise ValueError("Imagen no decodificable")
 
-    if img is not None:
-        h, w = img.shape[:2]
-        max_dim = 600
-        if max(h, w) > max_dim:
-            scale = max_dim / max(h, w)
-            new_w = int(w * scale)
-            new_h = int(h * scale)
-            img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_AREA)
+    h, w = img.shape[:2]
+    max_dim = 600
+    if max(h, w) > max_dim:
+        scale = max_dim / max(h, w)
+        new_w = int(w * scale)
+        new_h = int(h * scale)
+        img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_AREA)
 
-        success, encoded = cv2.imencode(".webp", img, [int(cv2.IMWRITE_WEBP_QUALITY), 85])
-        if success:
-            file_bytes = encoded.tobytes()
+    success, encoded = cv2.imencode(".webp", img, [int(cv2.IMWRITE_WEBP_QUALITY), 85])
+    if not success:
+        raise ValueError("No se pudo re-encodificar la imagen")
+    file_bytes = encoded.tobytes()
 
     filename = f"{uuid.uuid4()}.webp"
     path = settings.storage_path / filename
@@ -71,18 +73,24 @@ def ocr_text(image_bytes: bytes) -> str:
     Lazy import: PaddleOCR solo se carga cuando se llama."""
     from paddleocr import PaddleOCR  # ponytail: heavy lib, lazy load
 
-    ocr = PaddleOCR(use_angle_cls=True, lang="es", use_gpu=False, show_log=False)
+    ocr = PaddleOCR(
+        lang="es",
+        device="cpu",
+        use_textline_orientation=True,
+        # ponytail: oneDNN/PIR crash en paddlepaddle 3.3.x CPU, re-visitar al subir paddle
+        enable_mkldnn=False,
+    )
 
     nparr = np.frombuffer(image_bytes, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     if img is None:
         return ""
 
-    result = ocr.ocr(img, cls=True)
-    if not result or not result[0]:
+    result = ocr.predict(img)
+    if not result:
         return ""
 
-    return "\n".join(line[1][0] for line in result[0])
+    return "\n".join(result[0].get("rec_texts") or [])
 
 
 async def lookup_open_library(isbn: str) -> dict[str, str | None] | None:

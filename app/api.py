@@ -57,7 +57,10 @@ async def process_image(
     usa OCR como fallback y registra el libro en la BD."""
     image_bytes = await file.read()
 
-    image_path = save_image(image_bytes)
+    try:
+        image_path = save_image(image_bytes)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
     book_data: dict[str, str | None] = {
         "title": None,
@@ -76,7 +79,7 @@ async def process_image(
             book_data.update(lookup)
 
     if not book_data["title"]:
-        raw_text = ocr_text(image_bytes)
+        raw_text = ocr_text(image_path.read_bytes())
         if raw_text:
             log.info("OCR fallback — extracting structured data")
             book_data.update(extract_structured_data(raw_text))

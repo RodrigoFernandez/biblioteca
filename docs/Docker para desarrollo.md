@@ -82,8 +82,8 @@ docker compose -f Dockers/desa/docker-compose.yml down
 - Todos los comandos usan `-f Dockers/desa/docker-compose.yml`. Podés crear un alias: `alias dc='docker compose -f Dockers/desa/docker-compose.yml'`
 - La base de datos SQLite se guarda en el volumen `storage_data`, no desaparece al bajar los contenedores.
 - Si agregás una dependencia nueva a `pyproject.toml`, corré `docker compose -f Dockers/desa/docker-compose.yml build` para actualizar la imagen.
-- PaddleOCR tarda ~10s en la primera inferencia (descarga modelos). En el contenedor ocurre igual que en el host.
-- `tests/test_fixtures.py` (fotos reales con OCR) solo corre en el contenedor (tiene `paddleocr`); en el host sin el extra `[ocr]` se salta.
+- PaddleOCR (API 3.x): la primera inferencia tarda más (~15-20s, descarga ~3 modelos: detección, reconocimiento y orientación de líneas). El código desactiva MKLDNN (`enable_mkldnn=False`) por un bug de paddlepaddle 3.3.x CPU; no reactivarlo sin subir paddlepaddle.
+- `tests/test_fixtures.py` (fotos reales con OCR) solo corre en el contenedor (tiene `paddleocr`); en el host sin el extra `[ocr]` se salta. Requiere memoria suficiente: con fotos de cámara a resolución completa y ~6GB RAM el contenedor puede morir de OOM.
 
 ## Con Podman
 
