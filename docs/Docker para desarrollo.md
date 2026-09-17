@@ -51,7 +51,8 @@ docker compose -f Dockers/desa/docker-compose.yml up -d
 Los directorios montados como volúmenes:
 
 - `../../app:/app/app` (desde `Dockers/desa/`) — código fuente, cambios se reflejan al instante
-- `storage_data:/app/storage` — imágenes + SQLite persistente entre reinicios
+- `storage_data:/app/storage` — imágenes
+- `../../data:/app/data` — SQLite persistente en el host (`./data/biblioteca.db`)
 
 `uvicorn --reload` reinicia la API automáticamente al modificar archivos.
 
@@ -80,7 +81,7 @@ docker compose -f Dockers/desa/docker-compose.yml down
 ## Notas
 
 - Todos los comandos usan `-f Dockers/desa/docker-compose.yml`. Podés crear un alias: `alias dc='docker compose -f Dockers/desa/docker-compose.yml'`
-- La base de datos SQLite se guarda en el volumen `storage_data`, no desaparece al bajar los contenedores.
+- La base de datos SQLite se guarda en el bind mount `data/` (servicio `api`, con `BIBLIOTECA_DATABASE_URL=sqlite:///./data/biblioteca.db`), en `./data/biblioteca.db` del host; no desaparece al bajar los contenedores. Las imágenes quedan en el volumen `storage_data`.
 - Si agregás una dependencia nueva a `pyproject.toml`, corré `docker compose -f Dockers/desa/docker-compose.yml build` para actualizar la imagen.
 - PaddleOCR (API 3.x): la primera inferencia tarda más (~15-20s, descarga ~3 modelos: detección, reconocimiento y orientación de líneas). El código desactiva MKLDNN (`enable_mkldnn=False`) por un bug de paddlepaddle 3.3.x CPU; no reactivarlo sin subir paddlepaddle.
 - `tests/test_fixtures.py` (fotos reales con OCR) solo corre en el contenedor (tiene `paddleocr`); en el host sin el extra `[ocr]` se salta. Requiere memoria suficiente: con fotos de cámara a resolución completa y ~6GB RAM el contenedor puede morir de OOM.
@@ -146,7 +147,7 @@ podman compose -f Dockers/desa/docker-compose.yml up -d
 
 #### 4. Live reload
 
-Los mismos volúmenes montados (`../../app:/app/app` y `storage_data:/app/storage`) se reflejan al instante; `uvicorn --reload` funciona igual.
+Los mismos volúmenes montados (`../../app:/app/app`, `storage_data:/app/storage` y `../../data:/app/data` en el `api`) se reflejan al instante; `uvicorn --reload` funciona igual.
 
 #### 5. Comandos útiles
 
@@ -190,4 +191,4 @@ Los parámetros `api` y `background` se combinan en cualquier orden (p. ej. `./s
 
 - Podman es **rootless** (sin daemon): las imágenes quedan en `~/.local/share/containers` y no hace falta un service ni `sudo` para `up`/`-d`.
 - El reenvío de puertos (API en `http://localhost:8000`) funciona sin flags extra (usa `passt`/slirp4netns).
-- `podman compose down`/`up` y el volumen `storage_data` se comportan igual que con Docker.
+- `podman compose down`/`up`, el volumen `storage_data` y el bind mount `data/` (SQLite en el host) se comportan igual que con Docker.

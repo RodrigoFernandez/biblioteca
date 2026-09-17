@@ -5,7 +5,7 @@
 - [x] Docs de despliegue casero + registro del bot (docs/Telegram bot.md)
 - [x] Flujo Podman para desarrollo: script `scripts/pc` (wrapper `source .env` + `podman compose`), plugin `docker-compose-v2`, socket de Podman, `.env` único en la raíz, `.dockerignore` que excluye el `.env` del build context
 - [ ] Agregar `restart: unless-stopped` al docker-compose para que sobreviva reinicios del servidor (hoy se hace a mano)
-- [ ] Automatizar backups del volumen `storage_data` (cron/script) — hoy el respaldo es manual
+- [ ] Automatizar backups del volumen `storage_data` y del dir `data/` (SQLite en host) (cron/script) — hoy el respaldo es manual
 - [ ] Dockerfile multi-stage para producción (imagen optimizada, sin volúmenes de código)
 - [ ] Configurar logging dedicado de la app (niveles, formato, salida a archivo/rotación para api y bot)
 - [ ] CI/CD: GitHub Actions con ruff + pytest

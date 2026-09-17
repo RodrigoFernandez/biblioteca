@@ -8,7 +8,9 @@ services:
     volumes:
       - ../../app:/app/app
       - storage_data:/app/storage
+      - ../../data:/app/data
     environment:
+      - BIBLIOTECA_DATABASE_URL=sqlite:///./data/biblioteca.db
       - BIBLIOTECA_TELEGRAM_BOT_TOKEN=${BIBLIOTECA_TELEGRAM_BOT_TOKEN:?Variable BIBLIOTECA_TELEGRAM_BOT_TOKEN requerida}
     env_file:
       - ../../.env

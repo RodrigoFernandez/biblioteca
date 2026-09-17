@@ -26,6 +26,7 @@ app/
   bot.py         # Telegram ConversationHandler
 Dockers/desa/    # Docker para desarrollo (compose + Dockerfile)
 storage/images/  # Imagenes guardadas (UUID .webp)
+data/            # SQLite persistente (bind mount en el host)
 tests/           # Unit + integracion, fixtures con fotos reales de libros
 ```
 
