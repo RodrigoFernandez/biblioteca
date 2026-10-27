@@ -141,3 +141,44 @@ def test_get_book_not_found(client):
     resp = client.get("/api/books/no-such-id")
     assert resp.status_code == 404
     assert resp.json()["detail"] == "Libro no encontrado"
+
+
+def test_delete_book_removes_record_and_file(client, db_session, tmp_path):
+    """Elimina el libro y su archivo de imagen."""
+    image_file = tmp_path / "test.webp"
+    image_file.write_bytes(b"fake")
+    book = Book(title="El Aleph", isbn="9789500000000", image_path=str(image_file))
+    db = db_session()
+    db.add(book)
+    db.commit()
+    db.refresh(book)
+
+    resp = client.delete(f"/api/books/{book.id}")
+
+    assert resp.status_code == 204
+    assert resp.content == b""
+    assert db_session().query(Book).count() == 0
+    assert not image_file.exists()
+
+
+def test_delete_book_not_found(client):
+    """Id inexistente devuelve 404 al eliminar."""
+    resp = client.delete("/api/books/no-such-id")
+    assert resp.status_code == 404
+    assert resp.json()["detail"] == "Libro no encontrado"
+
+
+def test_delete_book_missing_file_still_deletes_record(client, db_session, tmp_path):
+    """Si el archivo no existe, igual elimina el registro."""
+    missing_path = tmp_path / "missing.webp"
+    book = Book(title="El Aleph", isbn="9789500000000", image_path=str(missing_path))
+    db = db_session()
+    db.add(book)
+    db.commit()
+    db.refresh(book)
+
+    resp = client.delete(f"/api/books/{book.id}")
+
+    assert resp.status_code == 204
+    assert resp.content == b""
+    assert db_session().query(Book).count() == 0

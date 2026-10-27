@@ -1,8 +1,9 @@
 import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
-from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, Response, UploadFile
 from sqlalchemy.orm import Session
 
 from app.config import settings
@@ -46,6 +47,23 @@ def get_book(book_id: str, db: Session = Depends(get_db)) -> BookResponse:
     if book is None:
         raise HTTPException(status_code=404, detail="Libro no encontrado")
     return BookResponse.model_validate(book)
+
+
+@app.delete("/api/books/{book_id}", status_code=204)
+def delete_book(book_id: str, db: Session = Depends(get_db)) -> Response:
+    """Elimina un libro y su archivo de imagen."""
+    book = db.get(Book, book_id)
+    if book is None:
+        raise HTTPException(status_code=404, detail="Libro no encontrado")
+
+    try:
+        Path(book.image_path).unlink(missing_ok=True)
+    except OSError:
+        log.warning("No se pudo eliminar el archivo de imagen %s", book.image_path)
+
+    db.delete(book)
+    db.commit()
+    return Response(status_code=204)
 
 
 @app.post("/api/books/process-image", response_model=ImageProcessResponse)
